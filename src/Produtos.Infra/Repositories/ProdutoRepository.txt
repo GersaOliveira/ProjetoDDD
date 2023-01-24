@@ -1,0 +1,80 @@
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Produtos.Domain.Models;
+using Produtos.Infra.Context;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
+namespace Produtos.Infra.Repositories
+{
+    public class ProdutoRepository : Repository<Produto>
+    {
+        public ProdutoRepository(AppDbContext context) : base(context)
+        {}
+
+        public async Task<ActionResult<Produto>> GetProdutos(long id)
+        {
+            var produto = await _context.Produtos.FindAsync(id);
+
+            if (produto == null)
+                return null;
+
+            return produto;
+        }
+         
+        public async Task<IActionResult> PutProduto(long id, Produto ProdutoDTO)
+        {
+            if (id != ProdutoDTO.Id)
+            {
+                return null;
+            }
+
+            var produto  = await _context.Produtos.FindAsync(id);
+            if (produto == null)
+            {
+                return null;
+            }
+
+                produto.CNPJFornecedor = ProdutoDTO.CNPJFornecedor;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException) when (!ProdutoExists(id))
+            {
+                return null;
+            }
+
+            return null;
+        }
+
+
+        [HttpDelete("{id}")]
+        public async void DeleteTodoItem(long id)
+        {
+            var produto = await _context.Produtos.FindAsync(id);
+
+            _context.Produtos.Remove(produto);
+            await _context.SaveChangesAsync();
+
+
+        }
+
+        public async void PostProdItem(Produto ProdutoDTO)
+        {
+            var produto = await _context.Produtos.FindAsync(id);
+
+            _context.Produtos.Remove(produto);
+            await _context.SaveChangesAsync();
+
+
+        }
+
+        private bool ProdutoExists(long id)
+        {
+            return _context.Produtos.Any(e => e.Id == id);
+        }
+    }
+}
